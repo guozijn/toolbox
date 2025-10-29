@@ -2,7 +2,8 @@
 Command line utilities for working with PDF files.
 
 Current sub-commands:
-    merge    Merge all PDFs in the target directory (non-recursive) into a single file.
+    merge      Merge all PDFs in the target directory (non-recursive) into a single file.
+    extract    Extract the specified pages from a single PDF into a new PDF.
 """
 from __future__ import annotations
 
@@ -16,6 +17,7 @@ from typing import Iterable, List
 
 from pypdf import PdfReader, PdfWriter
 from reportlab.lib.pagesizes import letter
+from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfgen import canvas
 
 
@@ -118,14 +120,152 @@ def create_title_page(title: str, destination: Path) -> Path:
     """
     Create a single-page PDF containing `title` centered on the page.
     """
+    def wrap_text(
+        text: str, font_name: str, font_size: float, max_width: float
+    ) -> List[str]:
+        lines: List[str] = []
+        words = text.split()
+        if not words:
+            return ["Untitled"]
+
+        current = ""
+        for word in words:
+            candidate = word if not current else f"{current} {word}"
+            width = pdfmetrics.stringWidth(candidate, font_name, font_size)
+            if width <= max_width or not current:
+                current = candidate
+            else:
+                lines.append(current)
+                current = word
+        if current:
+            lines.append(current)
+        return lines or ["Untitled"]
+
     title_text = title.strip() or "Untitled"
     c = canvas.Canvas(str(destination), pagesize=letter)
     width, height = letter
-    c.setFont("Helvetica-Bold", 24)
-    c.drawCentredString(width / 2, height / 2, title_text)
+    font_name = "Helvetica-Bold"
+    font_size = 24
+    max_width = width * 0.8
+    margin = height * 0.15
+
+    lines = wrap_text(title_text, font_name, font_size, max_width)
+
+    def recompute_line_metrics(
+        current_lines: List[str], current_font_size: float
+    ) -> tuple[float, float]:
+        max_line_width = max(
+            pdfmetrics.stringWidth(line, font_name, current_font_size)
+            for line in current_lines
+        )
+        leading = current_font_size * 1.2
+        total_height = len(current_lines) * leading
+        return max_line_width, total_height
+
+    max_line_width, total_height = recompute_line_metrics(lines, font_size)
+    available_height = height - 2 * margin
+
+    while (
+        (max_line_width > max_width or total_height > available_height)
+        and font_size > 10
+    ):
+        font_size -= 2
+        lines = wrap_text(title_text, font_name, font_size, max_width)
+        max_line_width, total_height = recompute_line_metrics(lines, font_size)
+
+    leading = font_size * 1.2
+    start_y = max(
+        margin + total_height - leading,
+        (height + total_height) / 2 - leading,
+    )
+
+    c.setFont(font_name, font_size)
+    for index, line in enumerate(lines):
+        y = start_y - index * leading
+        if y < margin:
+            break
+        c.drawCentredString(width / 2, y, line)
     c.showPage()
     c.save()
     return destination
+
+
+def parse_page_ranges(spec: str, total_pages: int | None = None) -> List[int]:
+    """
+    Parse a page selection specification like "1,3-5" into a list of 1-based page numbers.
+    """
+    if not spec:
+        raise ValueError("Page specification cannot be empty")
+
+    pages: List[int] = []
+    for raw_part in spec.split(","):
+        part = raw_part.strip()
+        if not part:
+            continue
+        if "-" in part:
+            start_str, end_str = part.split("-", maxsplit=1)
+            try:
+                start = int(start_str)
+                end = int(end_str)
+            except ValueError as exc:
+                raise ValueError(f"Invalid page range: {part}") from exc
+            if start <= 0 or end <= 0:
+                raise ValueError("Page numbers must be positive integers")
+            if start > end:
+                raise ValueError(f"Range start greater than end: {part}")
+            for page in range(start, end + 1):
+                pages.append(page)
+        else:
+            try:
+                page = int(part)
+            except ValueError as exc:
+                raise ValueError(f"Invalid page number: {part}") from exc
+            if page <= 0:
+                raise ValueError("Page numbers must be positive integers")
+            pages.append(page)
+
+    if not pages:
+        raise ValueError("No valid pages found in specification")
+
+    if total_pages is not None:
+        for page in pages:
+            if page > total_pages:
+                raise ValueError(
+                    f"Requested page {page} exceeds document length ({total_pages} pages)"
+                )
+
+    return pages
+
+
+def handle_extract(args: argparse.Namespace) -> int:
+    input_path = Path(args.input).expanduser().resolve()
+    if not input_path.exists():
+        raise FileNotFoundError(f"Input file not found: {input_path}")
+    if input_path.suffix.lower() != ".pdf":
+        raise ValueError("Input file must be a PDF")
+
+    output_path = Path(args.output)
+    if not output_path.is_absolute():
+        output_path = input_path.parent / output_path
+    output_path = output_path.resolve()
+
+    reader = PdfReader(str(input_path))
+    total_pages = len(reader.pages)
+    selected_pages = parse_page_ranges(args.pages, total_pages=total_pages)
+
+    writer = PdfWriter()
+    for page_number in selected_pages:
+        writer.add_page(reader.pages[page_number - 1])
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with output_path.open("wb") as handle:
+        writer.write(handle)
+    writer.close()
+
+    print(
+        f"Extracted {len(selected_pages)} pages from {input_path.name} into {output_path}"
+    )
+    return 0
 
 
 def handle_merge(args: argparse.Namespace) -> int:
@@ -232,6 +372,28 @@ def build_parser() -> argparse.ArgumentParser:
         help="Explicit path to the LibreOffice 'soffice' executable.",
     )
     merge_parser.set_defaults(func=handle_merge)
+
+    extract_parser = subparsers.add_parser(
+        "extract",
+        help="Extract specific pages from a PDF and save them to a new file.",
+    )
+    extract_parser.add_argument(
+        "input",
+        help="Path to the source PDF file.",
+    )
+    extract_parser.add_argument(
+        "-p",
+        "--pages",
+        required=True,
+        help="Page selection (1-based) using commas and ranges, e.g. '1,3-5,8'.",
+    )
+    extract_parser.add_argument(
+        "-o",
+        "--output",
+        default="extracted.pdf",
+        help="Output PDF filepath (default: extracted.pdf next to the source file).",
+    )
+    extract_parser.set_defaults(func=handle_extract)
 
     return parser
 
