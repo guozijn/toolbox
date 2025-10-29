@@ -12,6 +12,7 @@ import sys
 import shutil
 import subprocess
 import tempfile
+import re
 from pathlib import Path
 from typing import Iterable, List
 
@@ -19,6 +20,17 @@ from pypdf import PdfReader, PdfWriter
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfgen import canvas
+
+
+def natural_key(value: str) -> List[object]:
+    """
+    Split text into case-insensitive chunks so numbers are sorted numerically.
+    """
+    return [
+        int(chunk) if chunk.isdigit() else chunk.lower()
+        for chunk in re.split(r"(\d+)", value)
+        if chunk
+    ]
 
 
 def find_pdfs(directory: Path) -> List[Path]:
@@ -30,7 +42,7 @@ def find_pdfs(directory: Path) -> List[Path]:
         for path in directory.iterdir()
         if path.is_file() and path.suffix.lower() == ".pdf"
     ]
-    return sorted(pdfs, key=lambda path: path.name.lower())
+    return sorted(pdfs, key=lambda path: natural_key(path.name))
 
 
 def find_pptx(directory: Path) -> List[Path]:
@@ -42,7 +54,7 @@ def find_pptx(directory: Path) -> List[Path]:
         for path in directory.iterdir()
         if path.is_file() and path.suffix.lower() == ".pptx"
     ]
-    return sorted(pptx, key=lambda path: path.name.lower())
+    return sorted(pptx, key=lambda path: natural_key(path.name))
 
 
 def merge_pdfs(input_files: Iterable[Path], output_path: Path) -> Path:
@@ -51,10 +63,9 @@ def merge_pdfs(input_files: Iterable[Path], output_path: Path) -> Path:
     """
     writer = PdfWriter()
     for pdf_path in input_files:
-        with pdf_path.open("rb") as handle:
-            reader = PdfReader(handle)
-            for page in reader.pages:
-                writer.add_page(page)
+        reader = PdfReader(str(pdf_path))
+        for page in reader.pages:
+            writer.add_page(page)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with output_path.open("wb") as out_handle:
@@ -313,7 +324,7 @@ def handle_merge(args: argparse.Namespace) -> int:
                 + (" or PPTX files to convert" if args.include_pptx else "")
             )
 
-        documents.sort(key=lambda item: item[0].lower())
+        documents.sort(key=lambda item: natural_key(item[0]))
         total_documents = len(documents)
         merge_inputs: List[Path] = []
         for index, (name, path) in enumerate(documents, start=1):
