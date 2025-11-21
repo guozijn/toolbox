@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Command line utilities for working with PDF files.
 
