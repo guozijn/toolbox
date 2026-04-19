@@ -3,6 +3,67 @@ A set of useful toolkits and scripts
 
 ---
 
+## social_post
+
+A command-line tool for posting messages to a social media matrix — X (Twitter), LinkedIn, Facebook Page, Reddit, and Buffer — simultaneously or selectively.
+
+### Requirements
+
+```
+pip install tweepy requests praw python-dotenv
+```
+
+### Setup
+
+Copy `.env.example` to `.env` and fill in your API credentials for each platform you intend to use.
+
+| Platform | Where to get credentials |
+|---|---|
+| X (Twitter) | https://developer.twitter.com/en/portal/dashboard |
+| LinkedIn | https://www.linkedin.com/developers/apps — scopes: `w_member_social`, `r_liteprofile` |
+| Facebook Page | https://developers.facebook.com/apps — Page Access Token with `pages_manage_posts` scope |
+| Reddit | https://www.reddit.com/prefs/apps — script-type app |
+| Buffer | https://buffer.com/developers/apps — Personal Access Token or OAuth2 app |
+
+### Usage
+
+```
+python social_post.py "Your message" [options]
+```
+
+| Option | Default | Description |
+|---|---|---|
+| `--platforms` | `all` | Space-separated list: `x`, `linkedin`, `facebook`, `reddit`, `buffer`, `all` |
+| `--image` | — | Path to an image file to attach |
+| `--reddit-subreddit` | — | Subreddit name (required when Reddit is targeted) |
+| `--reddit-title` | — | Post title for Reddit (required when Reddit is targeted) |
+| `--buffer-profile-ids` | — | Space-separated Buffer profile IDs (default: all connected profiles) |
+| `--dry-run` | — | Preview what would be posted without sending |
+| `--output` | `text` | Output format: `text` or `json` |
+
+**Examples**
+
+```bash
+# Post to all platforms
+python social_post.py "Hello world!" --platforms all \
+    --reddit-subreddit python --reddit-title "Hello from social_post"
+
+# Post only to X and LinkedIn
+python social_post.py "New blog post is live" --platforms x linkedin
+
+# Post with an image to Facebook and LinkedIn
+python social_post.py "Check this photo" --platforms facebook linkedin --image ./photo.jpg
+
+# Dry run to preview before sending
+python social_post.py "Test" --platforms all --dry-run \
+    --reddit-subreddit test --reddit-title "Test post"
+
+# Get machine-readable JSON output
+python social_post.py "Hello" --platforms x linkedin --output json
+```
+
+---
+
 ## pdf_tool
 
 A command-line utility for common PDF operations.
