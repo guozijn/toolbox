@@ -1,5 +1,5 @@
 ---
-name: social-post
+name: social-matrix
 description: >
   Post messages to a social media matrix — X (Twitter), LinkedIn, Facebook Page,
   Reddit, and Buffer — simultaneously or selectively from a single command.
@@ -94,13 +94,13 @@ uv pip install --python ~/.hermes/hermes-agent/venv/bin/python tweepy praw
 After installing this skill, the helper script is at:
 
 ```
-~/.hermes/skills/social-post/scripts/social_post.py
+~/.hermes/skills/social-matrix/scripts/social_post.py
 ```
 
 Set a short alias for convenience in this session:
 
 ```bash
-SOCIAL="$(python3 -c "import os; print(os.path.expanduser('~/.hermes/skills/social-post/scripts/social_post.py'))")"
+SOCIAL="$(python3 -c "import os; print(os.path.expanduser('~/.hermes/skills/social-matrix/scripts/social_post.py'))")"
 PYTHON="$HOME/.hermes/hermes-agent/venv/bin/python"
 ```
 
