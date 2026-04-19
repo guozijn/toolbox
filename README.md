@@ -78,7 +78,7 @@ GITHUB_TOKEN=<token> hermes skills install guozijn/toolbox/social-matrix --force
 **Use directly:**
 ```bash
 pip install tweepy requests praw python-dotenv    # or: uv pip install ...
-cp .env.example .env   # fill in your API credentials
+cp social-matrix/.env.example .env   # fill in your API credentials
 python3 social-matrix/scripts/social_post.py "Your message" --platforms all \
     --reddit-subreddit python --reddit-title "Hello"
 ```
