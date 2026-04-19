@@ -15,8 +15,9 @@ Merge all PDFs in a directory into one file, or extract specific pages from a PD
 
 **Install via Hermes:**
 ```bash
-GITHUB_TOKEN=<token> hermes skills install guozijn/toolbox/pdf-tool --force
+hermes skills install guozijn/toolbox/pdf-tool --force
 ```
+> `--force` is required to bypass a false positive in hermes's security scanner (it flags subprocess calls as a supply-chain risk).
 
 **Use directly:**
 ```bash
@@ -72,8 +73,9 @@ simultaneously or selectively from a single command.
 
 **Install via Hermes:**
 ```bash
-GITHUB_TOKEN=<token> hermes skills install guozijn/toolbox/social-matrix --force
+hermes skills install guozijn/toolbox/social-matrix --force
 ```
+> `--force` is required to bypass a false positive in hermes's security scanner (it flags reading API keys from env vars as exfiltration).
 
 **Use directly:**
 ```bash
