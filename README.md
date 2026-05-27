@@ -5,6 +5,32 @@ A collection of command-line scripts and Hermes skills.
 Each tool lives in its own skill directory and can be used directly or installed
 into a Hermes agent via `hermes skills install`.
 
+## Tool Index
+
+| Tool | Category | Purpose |
+|---|---|---|
+| `pdf-tool` | Documents | Merge PDFs, extract pages, and optionally convert PPTX during merges |
+| `social-matrix` | Publishing | Cross-post messages to X, LinkedIn, Facebook Page, Reddit, and Buffer |
+| `repo-map` | Core agent utility | Produce compact repository or directory overviews |
+| `text-search` | Core agent utility | Search project text with ripgrep-first behavior |
+| `url-fetch` | Core agent utility | Fetch HTTP(S) responses for preview or saving |
+| `json-inspect` | Core agent utility | Validate, summarize, pretty-print, and query JSON |
+| `csv-preview` | Core agent utility | Preview CSV/TSV headers and rows |
+| `file-hash` | Core agent utility | Compute reproducible file checksums |
+| `mcp-toolsmith` | Advanced agent | Design and lint MCP tool schemas and metadata |
+| `agent-eval-harness` | Advanced agent | Run repeatable agent regression evals and pass-rate checks |
+| `agent-trace-inspector` | Advanced agent | Inspect traces, spans, tool calls, errors, and latency |
+| `context-provenance` | Advanced agent | Build source-grounded context packs with hashes and line ranges |
+| `agent-security-audit` | Advanced agent | Scan prompts, MCP configs, tools, and logs for agent security risks |
+| `agent-workflow-graph` | Advanced agent | Validate graph/state-machine workflows and approval boundaries |
+| `browser-agent` | Advanced agent | Build and review browser-using agents and browser runtime readiness |
+| `system-inventory` | Computer operation | Inspect OS, runtimes, commands, disk space, and env presence |
+| `port-process-inspector` | Computer operation | Inspect local listening ports and owning processes |
+| `archive-manager` | Computer operation | Safely list, create, and extract zip/tar archives |
+| `file-organizer` | Computer operation | Plan file cleanup, grouping, and duplicate detection |
+| `clipboard-tool` | Computer operation | Read from or write to the system clipboard |
+| `screenshot-tool` | Computer operation | Capture desktop screenshots with available OS commands |
+
 ---
 
 ## Tools
@@ -125,3 +151,52 @@ python3 social-matrix/scripts/social_post.py "Check this" --platforms buffer \
 python3 social-matrix/scripts/social_post.py "Test" --platforms all --dry-run \
     --reddit-subreddit test --reddit-title "Test"
 ```
+
+---
+
+### Core agent tools
+
+Small standard-library utilities for common AI-agent workflows. Each tool is a
+separate skill so agents can install only what they need.
+
+| Tool | Purpose | Install via Hermes |
+|---|---|---|
+| `repo-map` | Compact repository or directory overview | `hermes skills install guozijn/toolbox/repo-map --force` |
+| `text-search` | Project text search with `rg` fallback behavior | `hermes skills install guozijn/toolbox/text-search --force` |
+| `url-fetch` | HTTP(S) fetch and response preview/save | `hermes skills install guozijn/toolbox/url-fetch --force` |
+| `json-inspect` | Validate, summarize, pretty-print, or query JSON | `hermes skills install guozijn/toolbox/json-inspect --force` |
+| `csv-preview` | Preview CSV/TSV headers and rows | `hermes skills install guozijn/toolbox/csv-preview --force` |
+| `file-hash` | Compute reproducible file checksums | `hermes skills install guozijn/toolbox/file-hash --force` |
+
+---
+
+### Advanced agent skills
+
+Research-informed skills for building, evaluating, observing, and securing
+modern AI agents.
+
+| Tool | Purpose | Install via Hermes |
+|---|---|---|
+| `mcp-toolsmith` | Design and lint MCP tool schemas and server metadata | `hermes skills install guozijn/toolbox/mcp-toolsmith --force` |
+| `agent-eval-harness` | Run repeatable agent regression evals and pass-rate checks | `hermes skills install guozijn/toolbox/agent-eval-harness --force` |
+| `agent-trace-inspector` | Inspect agent traces, spans, tool calls, errors, and latency | `hermes skills install guozijn/toolbox/agent-trace-inspector --force` |
+| `context-provenance` | Build source-grounded context packs with hashes and line ranges | `hermes skills install guozijn/toolbox/context-provenance --force` |
+| `agent-security-audit` | Scan agent prompts, MCP configs, tools, and logs for common risks | `hermes skills install guozijn/toolbox/agent-security-audit --force` |
+| `agent-workflow-graph` | Validate graph/state-machine workflows for reachability and approvals | `hermes skills install guozijn/toolbox/agent-workflow-graph --force` |
+| `browser-agent` | Build and review browser-using agents and browser runtime readiness | `hermes skills install guozijn/toolbox/browser-agent --force` |
+
+---
+
+### Computer operation tools
+
+Common local-computer skills for setup diagnostics, desktop workflow, and safe
+file operations.
+
+| Tool | Purpose | Install via Hermes |
+|---|---|---|
+| `system-inventory` | Inspect OS, runtimes, commands, disk space, and env presence | `hermes skills install guozijn/toolbox/system-inventory --force` |
+| `port-process-inspector` | Inspect local listening ports and owning processes | `hermes skills install guozijn/toolbox/port-process-inspector --force` |
+| `archive-manager` | Safely list, create, and extract zip/tar archives | `hermes skills install guozijn/toolbox/archive-manager --force` |
+| `file-organizer` | Plan file cleanup, grouping, and duplicate detection with dry-run defaults | `hermes skills install guozijn/toolbox/file-organizer --force` |
+| `clipboard-tool` | Read from or write to the system clipboard | `hermes skills install guozijn/toolbox/clipboard-tool --force` |
+| `screenshot-tool` | Capture desktop screenshots with available OS commands | `hermes skills install guozijn/toolbox/screenshot-tool --force` |
